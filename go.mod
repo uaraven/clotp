@@ -1,4 +1,4 @@
-module github.com/uaraven/macotp
+module github.com/uaraven/clotp
 
 go 1.17
 

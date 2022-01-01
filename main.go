@@ -34,7 +34,7 @@ func main() {
 	}
 
 	if options.Add != nil {
-		err = Add(*options.Add, keys)
+		err = Add(options.Add, keys)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -42,13 +42,10 @@ func main() {
 	}
 
 	if options.List != nil {
-		otps, err := keys.ListOTPs()
+		err = List(options.List, keys)
 		if err != nil {
 			fmt.Println(err)
-			return
 		}
-		for _, otp := range otps {
-			fmt.Printf("%s - %s\n", otp.Label, otp.OTP.ProvisioningUri(otp.Label, otp.Issuer))
-		}
+		return
 	}
 }
