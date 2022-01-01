@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/99designs/keyring v1.1.6
 	github.com/alexflint/go-arg v1.4.2
+	github.com/uaraven/gotp v0.0.1
 )
 
 require (

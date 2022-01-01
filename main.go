@@ -10,7 +10,8 @@ type ListCmd struct {
 }
 
 type AddCmd struct {
-	Url string `arg:"positional,required"`
+	Uri  string `arg:"positional,required"`
+	Name string `arg:"--name"`
 }
 
 var options struct {
@@ -32,14 +33,22 @@ func main() {
 		return
 	}
 
-	if options.List != nil {
-		keys, err := keys.ListKeys()
+	if options.Add != nil {
+		err = Add(*options.Add, keys)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		for key := range keys {
-			fmt.Println(key)
+	}
+
+	if options.List != nil {
+		otps, err := keys.ListOTPs()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		for _, otp := range otps {
+			fmt.Printf("%s - %s\n", otp.Label, otp.OTP.ProvisioningUri(otp.Label, otp.Issuer))
 		}
 	}
 }
