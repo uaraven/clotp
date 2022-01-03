@@ -19,6 +19,7 @@ Commands:
   - `add` - add an OTP
   - `remove` - remove existing OTP
   - `code` - generate OTP code
+  - `decode` - decode "otpauth-migrate" URI
 
 #### List
 

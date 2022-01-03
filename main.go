@@ -14,9 +14,15 @@ type AddCmd struct {
 	Name string `arg:"--name"`
 }
 
+type RemoveCmd struct {
+	Id   string `arg:"--id"`
+	Name string `arg:"--name"`
+}
+
 var options struct {
-	List *ListCmd `arg:"subcommand:list"`
-	Add  *AddCmd  `arg:"subcommand:add"`
+	List   *ListCmd   `arg:"subcommand:list"`
+	Add    *AddCmd    `arg:"subcommand:add"`
+	Remove *RemoveCmd `arg:"subcommand:remove"`
 }
 
 func main() {

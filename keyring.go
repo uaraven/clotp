@@ -2,29 +2,43 @@ package main
 
 import (
 	"encoding/base64"
+	"fmt"
 
 	"github.com/99designs/keyring"
 	"github.com/uaraven/gotp"
 )
 
-type Keys struct {
+type Keys interface {
+	ListOTPs() ([]OTPKey, error)
+	AddKey(id string, name string, otpUri string) error
+	RemoveById(id string) error
+	RemoveByName(name string) error
+}
+
+type KeyringKeys struct {
+	Keys
 	ring keyring.Keyring
 }
 
-func NewKeys() (*Keys, error) {
+type OTPKey struct {
+	gotp.OTPKeyData
+	Id string
+}
+
+func NewKeys() (Keys, error) {
 	ring, err := keyring.Open(keyring.Config{
 		ServiceName: "clotp",
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &Keys{
+	return &KeyringKeys{
 		ring: ring,
 	}, nil
 }
 
-func (k *Keys) ListOTPs() ([]gotp.OTPKeyData, error) {
-	result := make([]gotp.OTPKeyData, 0)
+func (k *KeyringKeys) ListOTPs() ([]OTPKey, error) {
+	result := make([]OTPKey, 0)
 	keys, err := k.ring.Keys()
 	if err != nil {
 		return nil, err
@@ -42,17 +56,42 @@ func (k *Keys) ListOTPs() ([]gotp.OTPKeyData, error) {
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, *otp)
+		otpKey := OTPKey{
+			OTPKeyData: *otp,
+			Id:         key,
+		}
+		result = append(result, otpKey)
 	}
 	return result, err
 }
 
-func (k *Keys) AddKey(name string, otpUri string) error {
+func (k *KeyringKeys) AddKey(id string, name string, otpUri string) error {
 	base64uri := base64.StdEncoding.EncodeToString([]byte(otpUri))
 	kitem := keyring.Item{
-		Key:   name,
+		Key:   id,
 		Data:  []byte(base64uri),
 		Label: name,
 	}
 	return k.ring.Set(kitem)
+}
+
+func (k *KeyringKeys) RemoveById(id string) error {
+	return k.ring.Remove(id)
+}
+
+func (k *KeyringKeys) RemoveByName(name string) error {
+	keys, err := k.ring.Keys()
+	if err != nil {
+		return err
+	}
+	for _, key := range keys {
+		item, err := k.ring.Get(key)
+		if err != nil {
+			return err
+		}
+		if item.Label == name {
+			return k.ring.Remove(item.Key)
+		}
+	}
+	return fmt.Errorf("cannot find key with id=%s", name)
 }
