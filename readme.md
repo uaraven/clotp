@@ -19,7 +19,7 @@ Commands:
   - `add` - add an OTP
   - `remove` - remove existing OTP
   - `code` - generate OTP code
-  - `decode` - decode "otpauth-migrate" URI
+  - `decode` - decode "otpauth-migration" URI
 
 #### List
 
@@ -37,7 +37,7 @@ CLOTP supports HOTP and TOTP  one-time passwords using SHA1, SHA256, and SHA512 
 
 Following options are supported:
 
-  - `--name` - custom name that will override Issuer and account information from the `otpauth` URL.
+  - `--name` - custom name that will override account label from the `otpauth` URL. `--name` option is ignored when used with `otpauth-migration` URIs
 
 #### Remove
 
@@ -52,4 +52,20 @@ Where `name` is an OTP name.
 `code` will generate a new code
 
     clotp code <name>
+
+
+#### Decode
+
+`decode` can be used to decode Google Authenticator "export" URI. `decode` command accepts `otpauth-migration` URI and prints out all `otpauth` urls encoded in that URI.
+
+    clotp decode <url>
+
+For example,
+
+    $ otpauth-migration://offline?data=XXXXX
+
+    otpauth://totp/aaa:bbb?secret=YYYYY
+    otpauth://hotp/aaa:ccc?secret=ZZZZZ&counter=1023
+
+
 

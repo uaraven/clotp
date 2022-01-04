@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/uaraven/clotp/migration"
 	"github.com/uaraven/gotp"
 )
 
@@ -51,4 +52,19 @@ func Remove(cmd *RemoveCmd, keys Keys) error {
 	} else {
 		return fmt.Errorf("neither id nor name specified")
 	}
+}
+
+func Decode(cmd *DecodeCmd) error {
+	payload, err := migration.UnmarshalURL(cmd.Uri)
+	if err != nil {
+		return err
+	}
+	for _, otpParam := range payload.OtpParameters {
+		otp, err := otpFromParameters(otpParam)
+		if err != nil {
+			return err
+		}
+		fmt.Println(otp.ProvisioningUri(otpParam.Name, otpParam.Issuer))
+	}
+	return nil
 }

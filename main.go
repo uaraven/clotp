@@ -19,10 +19,15 @@ type RemoveCmd struct {
 	Name string `arg:"--name"`
 }
 
+type DecodeCmd struct {
+	Uri string `arg:"positional,required"`
+}
+
 var options struct {
 	List   *ListCmd   `arg:"subcommand:list"`
 	Add    *AddCmd    `arg:"subcommand:add"`
 	Remove *RemoveCmd `arg:"subcommand:remove"`
+	Decode *DecodeCmd `arg:"subcommand:decode"`
 }
 
 func main() {
@@ -40,6 +45,8 @@ func main() {
 		err = List(options.List, keys)
 	} else if options.Remove != nil {
 		err = Remove(options.Remove, keys)
+	} else if options.Decode != nil {
+		err = Decode(options.Decode)
 	} else {
 		fmt.Println("Must provide a command. Run with --help to see command line options")
 		return

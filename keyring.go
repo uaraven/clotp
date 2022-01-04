@@ -48,19 +48,21 @@ func (k *KeyringKeys) ListOTPs() ([]OTPKey, error) {
 		if err != nil {
 			return nil, err
 		}
-		uriBytes, err := base64.StdEncoding.DecodeString(string(item.Data))
-		if err != nil {
-			return nil, err
+		if len(item.Data) != 0 {
+			uriBytes, err := base64.StdEncoding.DecodeString(string(item.Data))
+			if err != nil {
+				return nil, err
+			}
+			otp, err := gotp.OTPFromUri(string(uriBytes))
+			if err != nil {
+				return nil, err
+			}
+			otpKey := OTPKey{
+				OTPKeyData: *otp,
+				Id:         key,
+			}
+			result = append(result, otpKey)
 		}
-		otp, err := gotp.OTPFromUri(string(uriBytes))
-		if err != nil {
-			return nil, err
-		}
-		otpKey := OTPKey{
-			OTPKeyData: *otp,
-			Id:         key,
-		}
-		result = append(result, otpKey)
 	}
 	return result, err
 }
@@ -76,7 +78,14 @@ func (k *KeyringKeys) AddKey(id string, name string, otpUri string) error {
 }
 
 func (k *KeyringKeys) RemoveById(id string) error {
-	return k.ring.Remove(id)
+	// return k.ring.Remove(id)
+	// remove always fails, so we just clear the data for now
+	item, err := k.ring.Get(id)
+	if err != nil {
+		return err
+	}
+	item.Data = make([]byte, 0)
+	return k.ring.Set(item)
 }
 
 func (k *KeyringKeys) RemoveByName(name string) error {
@@ -90,7 +99,10 @@ func (k *KeyringKeys) RemoveByName(name string) error {
 			return err
 		}
 		if item.Label == name {
-			return k.ring.Remove(item.Key)
+			// remove always fails, so we just clear the data for now
+			// return k.ring.Remove(item.Key)
+			item.Data = make([]byte, 0)
+			return k.ring.Set(item)
 		}
 	}
 	return fmt.Errorf("cannot find key with name=%s", name)
