@@ -28,30 +28,23 @@ var options struct {
 func main() {
 	arg.MustParse(&options)
 
-	if options.List == nil && options.Add == nil {
+	keys, err := NewKeys()
+	if err != nil {
+		fmt.Printf("Failed to create keyring, %v\n", err)
+		return
+	}
+	err = nil
+	if options.Add != nil {
+		err = Add(options.Add, keys)
+	} else if options.List != nil {
+		err = List(options.List, keys)
+	} else if options.Remove != nil {
+		err = Remove(options.Remove, keys)
+	} else {
 		fmt.Println("Must provide a command. Run with --help to see command line options")
 		return
 	}
-
-	keys, err := NewKeys()
 	if err != nil {
-		fmt.Printf("Failed to create keyring, %v", err)
-		return
-	}
-
-	if options.Add != nil {
-		err = Add(options.Add, keys)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-	}
-
-	if options.List != nil {
-		err = List(options.List, keys)
-		if err != nil {
-			fmt.Println(err)
-		}
-		return
+		fmt.Println(err)
 	}
 }

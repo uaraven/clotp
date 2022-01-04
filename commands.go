@@ -30,19 +30,24 @@ func List(cmd *ListCmd, keys Keys) error {
 	if err != nil {
 		return err
 	}
-	for _, otp := range otps {
-		fmt.Printf("[%s: %s] %s\n", otp.Id, otp.Label, otp.OTP.ProvisioningUri(otp.Label, otp.Issuer))
+	if len(otps) == 0 {
+		fmt.Println("No stored codes")
+
+	} else {
+		for _, otp := range otps {
+			fmt.Printf("[%s] %s - %s\n", otp.Id, otp.Label, otp.OTP.ProvisioningUri(otp.Label, otp.Issuer))
+		}
 	}
 	return nil
 }
 
 func Remove(cmd *RemoveCmd, keys Keys) error {
 	if cmd.Id != "" {
-		keys.RemoveById(cmd.Id)
-		return nil
+		fmt.Printf("Removing code with id '%s'\n", cmd.Id)
+		return keys.RemoveById(cmd.Id)
 	} else if cmd.Name != "" {
-		keys.RemoveByName(cmd.Name)
-		return nil
+		fmt.Printf("Removing code with name '%s'\n", cmd.Id)
+		return keys.RemoveByName(cmd.Name)
 	} else {
 		return fmt.Errorf("neither id nor name specified")
 	}

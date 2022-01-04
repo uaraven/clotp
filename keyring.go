@@ -93,5 +93,5 @@ func (k *KeyringKeys) RemoveByName(name string) error {
 			return k.ring.Remove(item.Key)
 		}
 	}
-	return fmt.Errorf("cannot find key with id=%s", name)
+	return fmt.Errorf("cannot find key with name=%s", name)
 }
