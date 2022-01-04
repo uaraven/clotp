@@ -48,3 +48,18 @@ func UnmarshalURL(link string) (*Payload, error) {
 	}
 	return Unmarshal(data)
 }
+
+func MarshalToURL(p *Payload) (string, error) {
+	data, err := proto.Marshal(p)
+	if err != nil {
+		return "", err
+	}
+	base64data := base64.StdEncoding.WithPadding(base64.NoPadding).EncodeToString(data)
+
+	url := url.URL{
+		Scheme:   "otpauth-migration",
+		Host:     "offline",
+		RawQuery: "data=" + url.QueryEscape(base64data),
+	}
+	return url.String(), nil
+}

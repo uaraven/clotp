@@ -24,8 +24,7 @@ func otpFromMigrationUri(uri string) ([]gotp.OTPKeyData, error) {
 		return nil, err
 	}
 	result := make([]gotp.OTPKeyData, 0)
-	if len(payload.OtpParameters) > 0 {
-		params := payload.OtpParameters[0]
+	for _, params := range payload.OtpParameters {
 		otp, err := otpFromParameters(params)
 		if err != nil {
 			return nil, err

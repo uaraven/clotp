@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/google/uuid"
 	"github.com/uaraven/clotp/migration"
@@ -10,6 +11,13 @@ import (
 
 func Add(cmd *AddCmd, keys Keys) error {
 	id := uuid.New().String()
+	u, err := url.Parse(cmd.Uri)
+	if err != nil {
+		return err
+	}
+	if u.Scheme == migrationScheme {
+		return AddMigration(cmd.Uri, keys)
+	}
 	otp, err := gotp.OTPFromUri(cmd.Uri)
 	if err != nil {
 		return err
@@ -24,6 +32,21 @@ func Add(cmd *AddCmd, keys Keys) error {
 	}
 
 	return keys.AddKey(id, name, cmd.Uri)
+}
+
+func AddMigration(migrationUri string, keys Keys) error {
+	otps, err := otpFromMigrationUri(migrationUri)
+	if err != nil {
+		return err
+	}
+	for _, otp := range otps {
+		id := uuid.New().String()
+		err = keys.AddKey(id, otp.Label, otp.OTP.ProvisioningUri(otp.Label, otp.Issuer))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func List(cmd *ListCmd, keys Keys) error {
