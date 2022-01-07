@@ -55,7 +55,7 @@ func otpFromParameters(params *migration.Payload_OtpParameters) (gotp.OTP, error
 }
 
 func totpFromParameters(params *migration.Payload_OtpParameters) (gotp.OTP, error) {
-	hash, err := hashFromAlgorithm(params.Algorithm)
+	hash, err := decodeAlgorithm(params.Algorithm)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func totpFromParameters(params *migration.Payload_OtpParameters) (gotp.OTP, erro
 }
 
 func hotpFromParameters(params *migration.Payload_OtpParameters) (gotp.OTP, error) {
-	hash, err := hashFromAlgorithm(params.Algorithm)
+	hash, err := decodeAlgorithm(params.Algorithm)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func hotpFromParameters(params *migration.Payload_OtpParameters) (gotp.OTP, erro
 	), nil
 }
 
-func hashFromAlgorithm(algo migration.Payload_Algorithm) (crypto.Hash, error) {
+func decodeAlgorithm(algo migration.Payload_Algorithm) (crypto.Hash, error) {
 	switch algo {
 	case migration.Payload_ALGORITHM_MD5:
 		return crypto.MD5, nil
