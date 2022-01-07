@@ -11,6 +11,8 @@ import (
 type Keys interface {
 	ListOTPs() ([]OTPKey, error)
 	AddKey(id string, name string, otpUri string) error
+	GetById(id string) (*OTPKey, error)
+	GetByName(name string) (*OTPKey, error)
 	RemoveById(id string) error
 	RemoveByName(name string) error
 }
@@ -37,6 +39,21 @@ func NewKeys() (Keys, error) {
 	}, nil
 }
 
+func (k *KeyringKeys) dataToOtpKey(item keyring.Item) (*OTPKey, error) {
+	if len(item.Data) != 0 {
+		uriBytes, err := base64.StdEncoding.DecodeString(string(item.Data))
+		if err != nil {
+			return nil, err
+		}
+		otp, err := gotp.OTPFromUri(string(uriBytes))
+		if err != nil {
+			return nil, err
+		}
+		return &OTPKey{OTPKeyData: *otp, Id: item.Key}, nil
+	}
+	return nil, nil
+}
+
 func (k *KeyringKeys) ListOTPs() ([]OTPKey, error) {
 	result := make([]OTPKey, 0)
 	keys, err := k.ring.Keys()
@@ -48,20 +65,12 @@ func (k *KeyringKeys) ListOTPs() ([]OTPKey, error) {
 		if err != nil {
 			return nil, err
 		}
-		if len(item.Data) != 0 {
-			uriBytes, err := base64.StdEncoding.DecodeString(string(item.Data))
-			if err != nil {
-				return nil, err
-			}
-			otp, err := gotp.OTPFromUri(string(uriBytes))
-			if err != nil {
-				return nil, err
-			}
-			otpKey := OTPKey{
-				OTPKeyData: *otp,
-				Id:         key,
-			}
-			result = append(result, otpKey)
+		otp, err := k.dataToOtpKey(item)
+		if err != nil {
+			return nil, err
+		}
+		if otp != nil {
+			result = append(result, *otp)
 		}
 	}
 	return result, err
@@ -75,6 +84,36 @@ func (k *KeyringKeys) AddKey(id string, name string, otpUri string) error {
 		Label: name,
 	}
 	return k.ring.Set(kitem)
+}
+
+func (k *KeyringKeys) GetById(id string) (*OTPKey, error) {
+	item, err := k.ring.Get(id)
+	if err != nil {
+		return nil, err
+	}
+	key, err := k.dataToOtpKey(item)
+	if key == nil && err == nil {
+		return nil, fmt.Errorf("cannot find code with id=%s", id)
+	} else {
+		return key, err
+	}
+}
+
+func (k *KeyringKeys) GetByName(name string) (*OTPKey, error) {
+	keys, err := k.ring.Keys()
+	if err != nil {
+		return nil, err
+	}
+	for _, key := range keys {
+		item, err := k.ring.Get(key)
+		if err != nil {
+			return nil, err
+		}
+		if item.Label == name {
+			return k.dataToOtpKey(item)
+		}
+	}
+	return nil, fmt.Errorf("cannot find code with name=%s", name)
 }
 
 func (k *KeyringKeys) RemoveById(id string) error {

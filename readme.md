@@ -49,9 +49,9 @@ Where `name` is an OTP name.
 
 #### Code
 
-`code` will generate a new code
+`code` will generate a new code from either otp id or otp name
 
-    clotp code <name>
+    clotp code --id <id>| <name>
 
 
 #### Decode

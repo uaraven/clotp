@@ -6,7 +6,7 @@ require (
 	github.com/99designs/keyring v1.1.6
 	github.com/alexflint/go-arg v1.4.2
 	github.com/google/uuid v1.3.0
-	github.com/uaraven/gotp v0.0.2
+	github.com/uaraven/gotp v0.0.3
 	google.golang.org/protobuf v1.27.1
 )
 
