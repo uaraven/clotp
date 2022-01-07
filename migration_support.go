@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"net/url"
 
+	_ "crypto/md5"
+	_ "crypto/sha256"
+	_ "crypto/sha512"
+
 	"github.com/uaraven/clotp/migration"
 	"github.com/uaraven/gotp"
 )
@@ -80,6 +84,8 @@ func hotpFromParameters(params *migration.Payload_OtpParameters) (gotp.OTP, erro
 
 func hashFromAlgorithm(algo migration.Payload_Algorithm) (crypto.Hash, error) {
 	switch algo {
+	case migration.Payload_ALGORITHM_MD5:
+		return crypto.MD5, nil
 	case migration.Payload_ALGORITHM_SHA1:
 		return crypto.SHA1, nil
 	case migration.Payload_ALGORITHM_SHA256:
