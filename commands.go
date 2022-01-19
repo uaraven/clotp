@@ -66,11 +66,13 @@ func List(cmd *ListCmd, keys Keys) (string, error) {
 			if cmd.Parse {
 				switch otpg := otp.OTP.(type) {
 				case *gotp.TOTP:
-					line = fmt.Sprintf("ID=%s, Name=%s, Secret=%s, Digits=%d, TimeStep=%d", otp.Id, otp.Label,
-						gotp.EncodeKey(otpg.Secret), otpg.Digits, otpg.TimeStep)
+					hash, _ := gotp.HashAlgorithmName(otpg.Hash)
+					line = fmt.Sprintf("ID=%s, Name=%s, Secret=%s, Hash=%s, Digits=%d, TimeStep=%d", otp.Id, otp.Label,
+						gotp.EncodeKey(otpg.Secret), hash, otpg.Digits, otpg.TimeStep)
 				case *gotp.HOTP:
-					line = fmt.Sprintf("ID=%s, Name=%s, Secret=%s, Digits=%d, Counter=%d", otp.Id, otp.Label,
-						gotp.EncodeKey(otpg.Secret), otpg.Digits, otpg.GetCounter())
+					hash, _ := gotp.HashAlgorithmName(otpg.Hash)
+					line = fmt.Sprintf("ID=%s, Name=%s, Secret=%s, Hash=%s, Digits=%d, Counter=%d", otp.Id, otp.Label,
+						gotp.EncodeKey(otpg.Secret), hash, otpg.Digits, otpg.GetCounter())
 				default:
 					return "", fmt.Errorf("unknown OTP type")
 				}
