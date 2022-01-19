@@ -184,5 +184,53 @@ func TestCodeHOTP(t *testing.T) {
 	if actual2 != expected2 {
 		t.Errorf("Expected code to be '%s', but got '%s' for the second invocation", expected2, actual2)
 	}
+}
 
+func TestSetCounter(t *testing.T) {
+	key := []byte("key")
+	totp := gotp.NewDefaultHOTP(key, 1)
+	keys := NewMockKeys()
+	keys.AddKey("1", "1", totp.ProvisioningUri("account", "issuer"))
+
+	cmd := &SetCounterCmd{
+		Id:      "1",
+		Name:    "",
+		Counter: 10,
+	}
+
+	_, err := SetCounter(cmd, keys)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	otp, err := keys.GetById("1")
+	if err != nil {
+		t.Error(err)
+	}
+
+	hotpc := otp.OTP.(*gotp.HOTP)
+
+	if hotpc.GetCounter() != 10 {
+		t.Errorf("failed to set counter, expected 10, got: %d", hotpc.GetCounter())
+	}
+}
+
+func TestSetCounterForTOTP(t *testing.T) {
+	key := []byte("key")
+	hotp := gotp.NewDefaultTOTP(key)
+	keys := NewMockKeys()
+	keys.AddKey("1", "1", hotp.ProvisioningUri("account", "issuer"))
+
+	cmd := &SetCounterCmd{
+		Id:      "1",
+		Name:    "",
+		Counter: 10,
+	}
+
+	_, err := SetCounter(cmd, keys)
+
+	if err == nil {
+		t.Errorf("SetCounter should fail for TOTP code")
+	}
 }

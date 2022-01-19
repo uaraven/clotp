@@ -20,6 +20,7 @@ Commands:
   - `remove` - remove existing OTP
   - `code` - generate OTP code
   - `decode` - decode "otpauth-migration" URI
+  - `set-counter` - set HOTP counter value
 
 #### List
 
@@ -62,7 +63,7 @@ Where `name` is an OTP name.
 
 For example,
 
-    $ otpauth-migration://offline?data=XXXXX
+    $ clotp decode otpauth-migration://offline?data=XXXXX
 
     otpauth://totp/aaa:bbb?secret=YYYYY
     otpauth://hotp/aaa:ccc?secret=ZZZZZ&counter=1023

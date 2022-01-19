@@ -62,7 +62,22 @@ func List(cmd *ListCmd, keys Keys) (string, error) {
 	} else {
 		var result strings.Builder
 		for _, otp := range otps {
-			result.WriteString(fmt.Sprintf("[%s] %s - %s\n", otp.Id, otp.Label, otp.OTP.ProvisioningUri(otp.Label, otp.Issuer)))
+			var line string
+			if cmd.Parse {
+				switch otpg := otp.OTP.(type) {
+				case *gotp.TOTP:
+					line = fmt.Sprintf("ID=%s, Name=%s, Secret=%s, Digits=%d, TimeStep=%d", otp.Id, otp.Label,
+						gotp.EncodeKey(otpg.Secret), otpg.Digits, otpg.TimeStep)
+				case *gotp.HOTP:
+					line = fmt.Sprintf("ID=%s, Name=%s, Secret=%s, Digits=%d, Counter=%d", otp.Id, otp.Label,
+						gotp.EncodeKey(otpg.Secret), otpg.Digits, otpg.GetCounter())
+				default:
+					return "", fmt.Errorf("unknown OTP type")
+				}
+			} else {
+				line = fmt.Sprintf("[%s] %s - %s\n", otp.Id, otp.Label, otp.OTP.ProvisioningUri(otp.Label, otp.Issuer))
+			}
+			result.WriteString(line)
 		}
 		return result.String(), nil
 	}
@@ -105,12 +120,40 @@ func Code(cmd *CodeCmd, keys Keys) (string, error) {
 		output = otpGen.Now()
 	case *gotp.HOTP:
 		// generating HOTP means we need to update the counter
+		if cmd.Counter > 0 {
+			otpGen.SetCounter(cmd.Counter)
+		}
+		uri := otpGen.ProvisioningUri(otp.Label, otp.Issuer)
+		err = keys.AddKey(otp.Id, otp.Label, uri)
+	}
+	return output, err
+}
+
+func SetCounter(cmd *SetCounterCmd, keys Keys) (string, error) {
+	if cmd.Id != "" && cmd.Name != "" {
+		return "", fmt.Errorf("one of --id or name must be specified")
+	}
+	var otp *OTPKey
+	var err error
+	if cmd.Id != "" {
+		otp, err = keys.GetById(cmd.Id)
+	} else if cmd.Name != "" {
+		otp, err = keys.GetByName(cmd.Name)
+	} else {
+		return "", fmt.Errorf("neither id nor name specified")
+	}
+	var output string
+	switch otpGen := otp.OTP.(type) {
+	case *gotp.TOTP:
+		return "", fmt.Errorf("cannot set counter for TOTP code")
+	case *gotp.HOTP:
+		// generating HOTP means we need to update the counter
 		if cmd.Counter >= 0 {
 			otpGen.SetCounter(cmd.Counter)
 		}
-		output = otpGen.CurrentOTP()
 		uri := otpGen.ProvisioningUri(otp.Label, otp.Issuer)
 		err = keys.AddKey(otp.Id, otp.Label, uri)
+		output = fmt.Sprintf("Set counter to %d", cmd.Counter)
 	}
 	return output, err
 }
