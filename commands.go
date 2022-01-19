@@ -52,6 +52,21 @@ func AddMigration(migrationUri string, keys Keys) (string, error) {
 	return result.String(), nil
 }
 
+func parseOTP(otp OTPKey) (string, error) {
+	switch otpg := otp.OTP.(type) {
+	case *gotp.TOTP:
+		hash, _ := gotp.HashAlgorithmName(otpg.Hash)
+		return fmt.Sprintf("ID=%s, Name=%s, Secret=%s, Hash=%s, Digits=%d, TimeStep=%d", otp.Id, otp.Label,
+			gotp.EncodeKey(otpg.Secret), hash, otpg.Digits, otpg.TimeStep), nil
+	case *gotp.HOTP:
+		hash, _ := gotp.HashAlgorithmName(otpg.Hash)
+		return fmt.Sprintf("ID=%s, Name=%s, Secret=%s, Hash=%s, Digits=%d, Counter=%d", otp.Id, otp.Label,
+			gotp.EncodeKey(otpg.Secret), hash, otpg.Digits, otpg.GetCounter()), nil
+	default:
+		return "", fmt.Errorf("unknown OTP type")
+	}
+}
+
 func List(cmd *ListCmd, keys Keys) (string, error) {
 	otps, err := keys.ListOTPs()
 	if err != nil {
@@ -64,17 +79,9 @@ func List(cmd *ListCmd, keys Keys) (string, error) {
 		for _, otp := range otps {
 			var line string
 			if cmd.Parse {
-				switch otpg := otp.OTP.(type) {
-				case *gotp.TOTP:
-					hash, _ := gotp.HashAlgorithmName(otpg.Hash)
-					line = fmt.Sprintf("ID=%s, Name=%s, Secret=%s, Hash=%s, Digits=%d, TimeStep=%d", otp.Id, otp.Label,
-						gotp.EncodeKey(otpg.Secret), hash, otpg.Digits, otpg.TimeStep)
-				case *gotp.HOTP:
-					hash, _ := gotp.HashAlgorithmName(otpg.Hash)
-					line = fmt.Sprintf("ID=%s, Name=%s, Secret=%s, Hash=%s, Digits=%d, Counter=%d", otp.Id, otp.Label,
-						gotp.EncodeKey(otpg.Secret), hash, otpg.Digits, otpg.GetCounter())
-				default:
-					return "", fmt.Errorf("unknown OTP type")
+				line, err = parseOTP(otp)
+				if err != nil {
+					return "", err
 				}
 			} else {
 				line = fmt.Sprintf("[%s] %s - %s\n", otp.Id, otp.Label, otp.OTP.ProvisioningUri(otp.Label, otp.Issuer))
@@ -170,6 +177,21 @@ func Decode(cmd *DecodeCmd) (string, error) {
 		otp, err := otpFromParameters(otpParam)
 		if err != nil {
 			return "", err
+		}
+		if cmd.Parse {
+			otpkey := OTPKey{
+				Id: "N/A",
+				OTPKeyData: gotp.OTPKeyData{
+					Issuer: otpParam.Issuer,
+					Label:  otpParam.Name,
+					OTP:    otp,
+				},
+			}
+			line, err := parseOTP(otpkey)
+			if err != nil {
+				return "", err
+			}
+			result.WriteString(line)
 		}
 		result.WriteString(fmt.Sprintf("%s\n", otp.ProvisioningUri(otpParam.Name, otpParam.Issuer)))
 	}
