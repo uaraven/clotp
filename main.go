@@ -2,58 +2,30 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/alexflint/go-arg"
+	"github.com/uaraven/clotp/cli"
+	"github.com/uaraven/clotp/keyrings"
 )
 
-type ListCmd struct {
-	Parse bool `arg:"-p,--parse" help:"Parse URIs and print each part separately"`
-}
-
-type AddCmd struct {
-	Uri  string `arg:"positional,required"`
-	Name string `arg:"--name" help:"Optional name of the code to refer to it later"`
-}
-
-type RemoveCmd struct {
-	Id   string `arg:"--id" help:"ID of the code to remove"`
-	Name string `arg:"--name" help:"Name of the code to remove. Either name or ID must be provided"`
-}
-
-type CodeCmd struct {
-	Id      string `arg:"--id" help:"Look up key by its ID, instead of name"`
-	Name    string `arg:"positional"`
-	Counter int64  `arg:"--counter" help:"Override counter for the HOTP code"`
-	Copy    bool   `arg:"--copy" help:"Copy generated code to clipboard"`
-}
-
-type DecodeCmd struct {
-	Uri   string `arg:"positional,required" help:"Google Authenticator Export URI"`
-	Parse bool   `arg:"-p,--parse" help:"Parse URIs and print each part separately"`
-}
-
-type SetCounterCmd struct {
-	Id      string `arg:"--id" help:"HOTP code identifier"`
-	Name    string `arg:"--name" help:"HOTP code name"`
-	Counter int64  `arg:"positional,required" help:"New counter value"`
-}
-
 var options struct {
-	List       *ListCmd       `arg:"subcommand:list" help:"List stored OTPs"`
-	Add        *AddCmd        `arg:"subcommand:add"`
-	Remove     *RemoveCmd     `arg:"subcommand:remove"`
-	Code       *CodeCmd       `arg:"subcommand:code"`
-	Decode     *DecodeCmd     `arg:"subcommand:decode"`
-	SetCounter *SetCounterCmd `arg:"subcommand:set-counter" help:"Set HOTP counter"`
+	List       *cli.ListCmd       `arg:"subcommand:list" help:"List stored OTPs"`
+	Add        *cli.AddCmd        `arg:"subcommand:add" help:"Add new OTP code"`
+	Remove     *cli.RemoveCmd     `arg:"subcommand:remove" help:"Remove existing OTP code"`
+	Code       *cli.CodeCmd       `arg:"subcommand:code" help:"Generate OTP code"`
+	Decode     *cli.DecodeCmd     `arg:"subcommand:decode" help:"Decode Google Authenticator migration URI"`
+	SetCounter *cli.SetCounterCmd `arg:"subcommand:set-counter" help:"Set HOTP counter"`
 }
 
 // todo:
+// - add command to view code details
 // - add parameter to generate HOTP for a given counter or TOTP for a given timestamp
 
 func main() {
 	arg.MustParse(&options)
 
-	keys, err := NewKeys()
+	keys, err := keyrings.NewKeys()
 	if err != nil {
 		fmt.Printf("Failed to create keyring, %v\n", err)
 		return
@@ -61,23 +33,24 @@ func main() {
 	var output string
 	err = nil
 	if options.Add != nil {
-		output, err = Add(options.Add, keys)
+		output, err = cli.Add(options.Add, keys)
 	} else if options.List != nil {
-		output, err = List(options.List, keys)
+		output, err = cli.List(options.List, keys)
 	} else if options.Remove != nil {
-		output, err = Remove(options.Remove, keys)
+		output, err = cli.Remove(options.Remove, keys)
 	} else if options.Code != nil {
-		output, err = Code(options.Code, keys)
+		output, err = cli.Code(options.Code, keys)
 	} else if options.Decode != nil {
-		output, err = Decode(options.Decode)
+		output, err = cli.Decode(options.Decode)
 	} else if options.SetCounter != nil {
-		output, err = SetCounter(options.SetCounter, keys)
+		output, err = cli.SetCounter(options.SetCounter, keys)
 	} else {
 		fmt.Println("Must provide a command. Run with --help to see command line options")
 		return
 	}
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("Error: %v\n", err)
+		os.Exit(1)
 	} else {
 		fmt.Println(output)
 	}

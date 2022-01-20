@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"crypto"
@@ -34,9 +34,9 @@ func otpFromMigrationUri(uri string) ([]gotp.OTPKeyData, error) {
 			return nil, err
 		}
 		okd := gotp.OTPKeyData{
-			Issuer: params.Issuer,
-			Label:  params.Name,
-			OTP:    otp,
+			Issuer:  params.Issuer,
+			Account: params.Name,
+			OTP:     otp,
 		}
 		result = append(result, okd)
 	}

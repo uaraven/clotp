@@ -40,8 +40,8 @@ github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXf
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.5.1 h1:nOGnQDM7FYENwehXlg/kFVnos3rEvtKTjRvOWSzb6H4=
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
-github.com/uaraven/gotp v0.0.4 h1:0Xm4Z7xtIzFO89/lDiiCIiKntZnrmoTdVYygzQL6I14=
-github.com/uaraven/gotp v0.0.4/go.mod h1:nxl4MJvkVAU+1A+5sBXp9UYDzzMzDcRSqxpWRl2sbpY=
+github.com/uaraven/gotp v0.1.0 h1:inpQFmmatMBaOY8BCy9mI3sZy7QFwb+h4uhOdYNLXnE=
+github.com/uaraven/gotp v0.1.0/go.mod h1:nxl4MJvkVAU+1A+5sBXp9UYDzzMzDcRSqxpWRl2sbpY=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4 h1:HuIa8hRrWRSrqYzx1qI49NNxhdi2PrY7gxVSq1JjLDc=
 golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
