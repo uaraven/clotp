@@ -5,7 +5,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/uaraven/clotp/keyrings"
 	"github.com/uaraven/gotp"
 )
@@ -46,12 +45,11 @@ func AddMigration(migrationUri string, keys keyrings.Keys) (string, error) {
 	}
 	var result strings.Builder
 	for _, otp := range otps {
-		id := uuid.New().String()
 		err = keys.AddKey(otp.GetLabelRepr(), otp.OTP.ProvisioningUri(otp.Account, otp.Issuer))
 		if err != nil {
 			return "", err
 		}
-		result.WriteString(fmt.Sprintf("Added OTP %s with id %s\n", otp.GetLabelRepr(), id))
+		result.WriteString(fmt.Sprintf("Added OTP %s\n", otp.GetLabelRepr()))
 	}
 	return result.String(), nil
 }

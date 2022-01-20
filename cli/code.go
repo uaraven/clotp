@@ -5,6 +5,7 @@ import (
 
 	"github.com/uaraven/clotp/keyrings"
 	"github.com/uaraven/gotp"
+	"golang.design/x/clipboard"
 )
 
 type CodeCmd struct {
@@ -46,5 +47,10 @@ func Code(cmd *CodeCmd, keys keyrings.Keys) (string, error) {
 		otpKey.Key.Counter = newCounter
 		keys.UpdateKey(cmd.Name, otpKey)
 	}
-	return output, err
+	if cmd.Copy && err == nil {
+		clipboard.Write(clipboard.FmtText, []byte(output))
+		return "", nil
+	} else {
+		return output, err
+	}
 }
