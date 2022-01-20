@@ -124,7 +124,10 @@ func NewKey(otype OtpType, issuer string, account string) *KeyringKey {
 	}
 }
 
-func keyFromKeyringItem(keyItem keyring.Item) (*KeyringKey, error) {
+func keyFromKeyringItem(keyItem *keyring.Item) (*KeyringKey, error) {
+	if keyItem == nil {
+		return nil, fmt.Errorf("Invalid keyring key")
+	}
 	data, err := base64.StdEncoding.DecodeString(keyItem.Key)
 	if err != nil {
 		return nil, err

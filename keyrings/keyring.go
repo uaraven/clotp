@@ -15,6 +15,7 @@ type Keys interface {
 	ListOTPs() ([]KeyringKey, error)
 	AddKey(name string, otpUri string) error
 	GetByName(name string) (*KeyringItem, error)
+	GetKeyByName(name string) (*KeyringKey, error)
 	RemoveByName(name string) error
 	UpdateKey(name string, data *KeyringItem) error
 }
@@ -48,7 +49,7 @@ func dataToOtpKey(item keyring.Item) (*KeyringItem, error) {
 		if err != nil {
 			return nil, err
 		}
-		key, err := keyFromKeyringItem(item)
+		key, err := keyFromKeyringItem(&item)
 		key.Name = item.Label
 		if err != nil {
 			return nil, err
@@ -69,7 +70,7 @@ func (k *KeyringKeys) ListOTPs() ([]KeyringKey, error) {
 		if err != nil {
 			return nil, err
 		}
-		key, err := keyFromKeyringItem(*meta.Item)
+		key, err := keyFromKeyringItem(meta.Item)
 		if err != nil {
 			return nil, err
 		}
@@ -122,8 +123,9 @@ func (k *KeyringKeys) AddKey(name string, otpUri string) error {
 		label = name
 	}
 	key := KeyringKey{
+		Name:    label,
 		Type:    getType(otp.OTP),
-		Account: label,
+		Account: otp.Account,
 		Issuer:  otp.Issuer,
 	}
 	return k.saveItem(&KeyringItem{
@@ -161,6 +163,22 @@ func (k *KeyringKeys) GetByName(name string) (*KeyringItem, error) {
 			return nil, err
 		}
 		return dataToOtpKey(data)
+	} else {
+		return nil, fmt.Errorf("OTP code %s not found", name)
+	}
+}
+
+func (k *KeyringKeys) GetKeyByName(name string) (*KeyringKey, error) {
+	item, err := k.findByLabel(name)
+	if err != nil {
+		return nil, err
+	}
+	if item != nil {
+		data, err := k.ring.GetMetadata(item.Key)
+		if err != nil {
+			return nil, err
+		}
+		return keyFromKeyringItem(data.Item)
 	} else {
 		return nil, fmt.Errorf("OTP code %s not found", name)
 	}

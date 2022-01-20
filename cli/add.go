@@ -36,7 +36,7 @@ func Add(cmd *AddCmd, keys keyrings.Keys) (string, error) {
 		name = otp.GetLabelRepr()
 	}
 
-	return fmt.Sprintf("Added %s", name), keys.AddKey(name, cmd.Uri)
+	return fmt.Sprintf("Added %s(%s) as %s", otp.Account, otp.Issuer, name), keys.AddKey(name, cmd.Uri)
 }
 
 func AddMigration(migrationUri string, keys keyrings.Keys) (string, error) {

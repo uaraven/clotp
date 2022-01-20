@@ -7,7 +7,7 @@ import (
 )
 
 type RemoveCmd struct {
-	Name string `arg:"positional" help:"Name of the code to remove"`
+	Name string `arg:"positional,required" help:"Name of the code to remove"`
 }
 
 func Remove(cmd *RemoveCmd, keys keyrings.Keys) (string, error) {

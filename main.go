@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/alexflint/go-arg"
 	"github.com/uaraven/clotp/cli"
@@ -10,10 +11,10 @@ import (
 
 var options struct {
 	List       *cli.ListCmd       `arg:"subcommand:list" help:"List stored OTPs"`
-	Add        *cli.AddCmd        `arg:"subcommand:add"`
-	Remove     *cli.RemoveCmd     `arg:"subcommand:remove"`
-	Code       *cli.CodeCmd       `arg:"subcommand:code"`
-	Decode     *cli.DecodeCmd     `arg:"subcommand:decode"`
+	Add        *cli.AddCmd        `arg:"subcommand:add" help:"Add new OTP code"`
+	Remove     *cli.RemoveCmd     `arg:"subcommand:remove" help:"Remove existing OTP code"`
+	Code       *cli.CodeCmd       `arg:"subcommand:code" help:"Generate OTP code"`
+	Decode     *cli.DecodeCmd     `arg:"subcommand:decode" help:"Decode Google Authenticator migration URI"`
 	SetCounter *cli.SetCounterCmd `arg:"subcommand:set-counter" help:"Set HOTP counter"`
 }
 
@@ -48,7 +49,8 @@ func main() {
 		return
 	}
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("Error: %v\n", err)
+		os.Exit(1)
 	} else {
 		fmt.Println(output)
 	}
