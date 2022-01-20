@@ -12,7 +12,7 @@ type ViewCmd struct {
 	Name string `arg:"positional,required" help:"Name of the OTP code to view"`
 }
 
-func View(cmd *ViewCmd, keys *keyrings.KeyringKeys) (string, error) {
+func View(cmd *ViewCmd, keys keyrings.Keys) (string, error) {
 	if cmd.Name == "" {
 		return "", fmt.Errorf("name must be provided")
 	}
@@ -31,12 +31,13 @@ func View(cmd *ViewCmd, keys *keyrings.KeyringKeys) (string, error) {
 	}
 	sb.WriteString(fmt.Sprintf("   Hash Type: %s\n", hashName))
 	sb.WriteString(fmt.Sprintf(" Code Digits: %d\n", code.OTP.Digits))
-	if code.Key.Type == keyrings.TOTP {
+	switch code.Key.Type {
+	case keyrings.TOTP:
 		sb.WriteString(fmt.Sprintf(" Time offset: %d\n", code.OTP.StartTime))
 		sb.WriteString(fmt.Sprintf("   Time step: %d\n", code.OTP.TimeStep))
-	} else if code.Key.Type == keyrings.HOTP {
+	case keyrings.HOTP:
 		sb.WriteString(fmt.Sprintf("     Counter: %d\n", code.Key.Counter))
-	} else {
+	default:
 		return "", fmt.Errorf("unsupported OTP type: %d", code.Key.Type)
 	}
 	sb.WriteString(fmt.Sprintf("      Secret: %s\n", gotp.EncodeKey(code.OTP.Secret)))
