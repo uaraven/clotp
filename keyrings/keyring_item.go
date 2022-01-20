@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/99designs/keyring"
 	"github.com/uaraven/gotp"
 )
 
@@ -20,19 +21,19 @@ const (
 // OtpParams contains all the parameters needed to calculate OTP
 // This structure is marshalled to JSON, encoded to base64 and stored in keyring as a secret
 type OtpParams struct {
-	Type      OtpType     `json:"type"`
 	Hash      crypto.Hash `json:"hash"`
 	Secret    []byte      `json:"secret"`
 	Digits    int         `json:"digits"`
-	Counter   int64       `json:"counter,omitempty"`
 	StartTime int64       `json:"startTime,omitempty"`
 	TimeStep  int         `json:"timeStep,omitempty"`
 }
 
 type KeyringKey struct {
+	Name    string  `json:"-"`
 	Type    OtpType `json:"type"`
 	Account string  `json:"account"`
 	Issuer  string  `json:"issuer"`
+	Counter int64   `json:"counter,omitempty"`
 }
 
 type KeyringItem struct {
@@ -40,7 +41,7 @@ type KeyringItem struct {
 	OTP *OtpParams
 }
 
-func ParseOtpParams(otp string) (*OtpParams, error) {
+func parseOtpParams(otp string) (*OtpParams, error) {
 	data, err := base64.StdEncoding.DecodeString(otp)
 	if err != nil {
 		return nil, err
@@ -68,29 +69,29 @@ func ParamsFromOTP(otp gotp.OTP) (*OtpParams, error) {
 	out.Digits = otp.GetDigits()
 	switch otpt := otp.(type) {
 	case *gotp.TOTP:
-		out.Type = TOTP
+		// out.Type = TOTP
 		out.StartTime = otpt.GetStartTime()
 		out.TimeStep = otpt.GetTimeStep()
 	case *gotp.HOTP:
-		out.Type = HOTP
-		out.Counter = otpt.GetCounter()
+		// out.Type = HOTP
 	default:
 		return nil, fmt.Errorf("unsupported OTP type: %T", otp)
 	}
 	return &out, nil
 }
 
-func (or *OtpParams) AsOTP() (gotp.OTP, error) {
-	if or.Type == TOTP {
-		return gotp.NewTOTPHash(or.Secret, or.Digits, or.TimeStep, or.StartTime, or.Hash), nil
-	} else if or.Type == HOTP {
-		return gotp.NewHOTPHash(or.Secret, or.Counter, or.Digits, -1, or.Hash), nil
+func (ki KeyringItem) AsOTP() (gotp.OTP, error) {
+	otp := ki.OTP
+	if ki.Key.Type == TOTP {
+		return gotp.NewTOTPHash(otp.Secret, otp.Digits, otp.TimeStep, otp.StartTime, otp.Hash), nil
+	} else if ki.Key.Type == HOTP {
+		return gotp.NewHOTPHash(otp.Secret, ki.Key.Counter, otp.Digits, gotp.DefaultTransactionOffset, otp.Hash), nil
 	} else {
-		return nil, fmt.Errorf("unsupported OTP type: %d", or.Type)
+		return nil, fmt.Errorf("unsupported OTP type: %d", ki.Key.Type)
 	}
 }
 
-func (or *OtpParams) AsString() (string, error) {
+func (or *OtpParams) asString() (string, error) {
 	data, err := json.Marshal(or)
 	if err != nil {
 		return "", err
@@ -111,20 +112,20 @@ func KeyFromOTPData(data gotp.OTPKeyData) (*KeyringKey, error) {
 	return &KeyringKey{
 		Type:    otype,
 		Issuer:  data.Issuer,
-		Account: data.Label,
+		Account: data.Account,
 	}, nil
 }
 
-func NewKey(otype OtpType, issuer string, label string) *KeyringKey {
+func NewKey(otype OtpType, issuer string, account string) *KeyringKey {
 	return &KeyringKey{
 		Type:    otype,
 		Issuer:  issuer,
-		Account: label,
+		Account: account,
 	}
 }
 
-func KeyFromString(keyS string) (*KeyringKey, error) {
-	data, err := base64.StdEncoding.DecodeString(keyS)
+func keyFromKeyringItem(keyItem keyring.Item) (*KeyringKey, error) {
+	data, err := base64.StdEncoding.DecodeString(keyItem.Key)
 	if err != nil {
 		return nil, err
 	}
@@ -133,10 +134,11 @@ func KeyFromString(keyS string) (*KeyringKey, error) {
 	if err != nil {
 		return nil, err
 	}
+	ki.Name = keyItem.Label
 	return &ki, nil
 }
 
-func (kk *KeyringKey) ToKey() (string, error) {
+func (kk *KeyringKey) toKey() (string, error) {
 	data, err := json.Marshal(kk)
 	if err != nil {
 		return "", err
@@ -152,5 +154,13 @@ func (kk KeyringKey) GetTypeString() string {
 		return "TOTP"
 	default:
 		return "Unknown"
+	}
+}
+
+func (kk KeyringKey) GetLabel() string {
+	if kk.Issuer != "" {
+		return fmt.Sprintf("%s (%s)", kk.Account, kk.Issuer)
+	} else {
+		return kk.Account
 	}
 }

@@ -20,7 +20,7 @@ func List(cmd *ListCmd, keys keyrings.Keys) (string, error) {
 	} else {
 		var result strings.Builder
 		for _, otpKey := range otpKeys {
-			result.WriteString(fmt.Sprintf("%s:  %s - %s\n", otpKey.GetTypeString(), otpKey.Account, otpKey.Issuer))
+			result.WriteString(fmt.Sprintf("%s:  %s\n", otpKey.GetTypeString(), otpKey.GetLabel()))
 		}
 		return result.String(), nil
 	}

@@ -33,7 +33,7 @@ func Add(cmd *AddCmd, keys keyrings.Keys) (string, error) {
 	if cmd.Name != "" {
 		name = cmd.Name
 	} else {
-		name = otp.Label
+		name = otp.GetLabelRepr()
 	}
 
 	return fmt.Sprintf("Added %s", name), keys.AddKey(name, cmd.Uri)
@@ -47,11 +47,11 @@ func AddMigration(migrationUri string, keys keyrings.Keys) (string, error) {
 	var result strings.Builder
 	for _, otp := range otps {
 		id := uuid.New().String()
-		err = keys.AddKey(otp.Label, otp.OTP.ProvisioningUri(otp.Label, otp.Issuer))
+		err = keys.AddKey(otp.GetLabelRepr(), otp.OTP.ProvisioningUri(otp.Account, otp.Issuer))
 		if err != nil {
 			return "", err
 		}
-		result.WriteString(fmt.Sprintf("Added OTP %s with id %s\n", otp.Label, id))
+		result.WriteString(fmt.Sprintf("Added OTP %s with id %s\n", otp.GetLabelRepr(), id))
 	}
 	return result.String(), nil
 }

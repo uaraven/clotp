@@ -16,6 +16,7 @@ type Keys interface {
 	AddKey(name string, otpUri string) error
 	GetByName(name string) (*KeyringItem, error)
 	RemoveByName(name string) error
+	UpdateKey(name string, data *KeyringItem) error
 }
 
 type KeyringKeys struct {
@@ -43,11 +44,12 @@ func NewKeys() (*KeyringKeys, error) {
 
 func dataToOtpKey(item keyring.Item) (*KeyringItem, error) {
 	if len(item.Data) != 0 {
-		params, err := ParseOtpParams(string(item.Data))
+		params, err := parseOtpParams(string(item.Data))
 		if err != nil {
 			return nil, err
 		}
-		key, err := KeyFromString(item.Key)
+		key, err := keyFromKeyringItem(item)
+		key.Name = item.Label
 		if err != nil {
 			return nil, err
 		}
@@ -63,7 +65,11 @@ func (k *KeyringKeys) ListOTPs() ([]KeyringKey, error) {
 		return nil, err
 	}
 	for _, keySt := range keys {
-		key, err := KeyFromString(keySt)
+		meta, err := k.ring.GetMetadata(keySt)
+		if err != nil {
+			return nil, err
+		}
+		key, err := keyFromKeyringItem(*meta.Item)
 		if err != nil {
 			return nil, err
 		}
@@ -83,6 +89,23 @@ func getType(otp gotp.OTP) OtpType {
 	}
 }
 
+func (k *KeyringKeys) findByLabel(label string) (*keyring.Item, error) {
+	keys, err := k.ring.Keys()
+	if err != nil {
+		return nil, err
+	}
+	for _, keyStr := range keys {
+		meta, err := k.ring.GetMetadata(keyStr)
+		if err != nil {
+			return nil, err
+		}
+		if meta.Label == label {
+			return meta.Item, nil
+		}
+	}
+	return nil, nil
+}
+
 func (k *KeyringKeys) AddKey(name string, otpUri string) error {
 	otp, err := gotp.OTPFromUri(otpUri)
 	if err != nil {
@@ -94,7 +117,7 @@ func (k *KeyringKeys) AddKey(name string, otpUri string) error {
 	}
 	var label string
 	if name == "" {
-		label = otp.Label
+		label = otp.GetLabelRepr()
 	} else {
 		label = name
 	}
@@ -103,63 +126,68 @@ func (k *KeyringKeys) AddKey(name string, otpUri string) error {
 		Account: label,
 		Issuer:  otp.Issuer,
 	}
-	keyStr, err := key.ToKey()
+	return k.saveItem(&KeyringItem{
+		Key: &key,
+		OTP: otpParams,
+	})
+}
+
+func (k *KeyringKeys) saveItem(item *KeyringItem) error {
+	keyStr, err := item.Key.toKey()
 	if err != nil {
 		return err
 	}
-	paramsStr, err := otpParams.AsString()
+	paramsStr, err := item.OTP.asString()
 	if err != nil {
 		return err
 	}
 	kitem := keyring.Item{
-		Key:   keyStr,
-		Data:  []byte(paramsStr),
-		Label: label,
+		Key:                         keyStr,
+		Data:                        []byte(paramsStr),
+		Label:                       item.Key.Name,
+		KeychainNotTrustApplication: true,
 	}
 	return k.ring.Set(kitem)
 }
 
 func (k *KeyringKeys) GetByName(name string) (*KeyringItem, error) {
-	keys, err := k.ring.Keys()
+	item, err := k.findByLabel(name)
 	if err != nil {
 		return nil, err
 	}
-	for _, key := range keys {
-		kk, err := KeyFromString(key)
+	if item != nil {
+		data, err := k.ring.Get(item.Key)
 		if err != nil {
 			return nil, err
 		}
-		if kk.Account == name {
-			item, err := k.ring.Get(key)
-			if err != nil {
-				return nil, err
-			}
-			return dataToOtpKey(item)
-		}
+		return dataToOtpKey(data)
+	} else {
+		return nil, fmt.Errorf("OTP code %s not found", name)
 	}
-	return nil, fmt.Errorf("cannot find code with name=%s", name)
 }
 
 func (k *KeyringKeys) RemoveByName(name string) error {
-	keys, err := k.ring.Keys()
+	item, err := k.findByLabel(name)
 	if err != nil {
 		return err
 	}
-	for _, key := range keys {
-		kk, err := KeyFromString(key)
-		if err != nil {
-			return err
-		}
-		if kk.Account == name {
-			// remove always fails, so we just clear the data for now
-			// return k.ring.Remove(item.Key)
-			item, err := k.ring.Get(key)
-			if err != nil {
-				return err
-			}
-			item.Data = make([]byte, 0)
-			return k.ring.Set(item)
-		}
+	if item == nil {
+		return nil
 	}
-	return fmt.Errorf("cannot find key with name=%s", name)
+	return k.ring.Remove(item.Key)
+}
+
+func (k *KeyringKeys) UpdateKey(name string, key *KeyringItem) error {
+	item, err := k.findByLabel(name)
+	if err != nil {
+		return err
+	}
+	if item == nil {
+		return fmt.Errorf("OTP code %s not found", name)
+	}
+	err = k.RemoveByName(name)
+	if err != nil {
+		return err
+	}
+	return k.saveItem(key)
 }
