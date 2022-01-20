@@ -16,11 +16,11 @@ var options struct {
 	Code       *cli.CodeCmd       `arg:"subcommand:code" help:"Generate OTP code"`
 	Decode     *cli.DecodeCmd     `arg:"subcommand:decode" help:"Decode Google Authenticator migration URI"`
 	SetCounter *cli.SetCounterCmd `arg:"subcommand:set-counter" help:"Set HOTP counter"`
+	View       *cli.ViewCmd       `arg:"subcommand:view" help:"View OTP code details"`
 }
 
 // todo:
-// - add command to view code details
-// - add parameter to generate HOTP for a given counter or TOTP for a given timestamp
+// - add parameter to generate TOTP for a given timestamp
 
 func main() {
 	arg.MustParse(&options)
@@ -44,6 +44,8 @@ func main() {
 		output, err = cli.Decode(options.Decode)
 	} else if options.SetCounter != nil {
 		output, err = cli.SetCounter(options.SetCounter, keys)
+	} else if options.View != nil {
+		output, err = cli.View(options.View, keys)
 	} else {
 		fmt.Println("Must provide a command. Run with --help to see command line options")
 		return

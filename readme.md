@@ -16,6 +16,7 @@ Commands:
   - `code` - generate OTP code
   - `decode` - decode "otpauth-migration" URI
   - `set-counter` - set HOTP counter value
+  - `view` - view OTP code details
 
 #### List
 
@@ -72,5 +73,11 @@ For example,
 `set-counter` can be used to set HTOP counter value
 
     clotp set-counter <name> <counter-value>
+
+#### View
+
+`view` command shows detailed information about a selected OTP code, including Hash algorithm, number of digits, time step, counter, and (**WARNING!!!**), secret key
+
+    clotp view <name>
 
 
