@@ -3,15 +3,10 @@
 ## Usage
 
 **WARNING**
-<span style="font-size:12pt;" ><span style="color:red;">Actually using this utility could result in security breach. For real.</span> It is just plainly not a sound security practice, to have your one-time password stored on the same device where you might be using it for multi-factor authentication purposes. Anyone with access to the computer will be able to steal your one-time passwords and defeat MFA. Granted, you're probably using your MFA-protected sites from your phone copying the codes from the Google Authenticator installed on the same phone. Just be aware of the dangers, you've been warned.</span>
+<span style="font-size:12pt;" ><span style="color:red;">Actually using this utility could result in security breach. For real.</span> Storing MFA codes on the same device where you might be using it for multi-factor authentication purposes is a bad idea that goes against the purpose of the MFA. Anyone with access to the computer will be able to steal your one-time passwords and defeat MFA. Granted, you're probably using your MFA-protected sites from your phone copying the codes from the Google Authenticator installed on the same phone. Just be aware of the dangers, you've been warned. At least use strong passphrase for the clotp keyring and do not reuse that passphrase anywhere else.</span>
 
 
-    clotp [options] command [command-options]
-
-
-Options:
-
- - None at the moment
+    clotp command [command-options]
 
 Commands:
  
@@ -34,7 +29,7 @@ Commands:
 
 where `url` is [otpauth](https://github.com/google/google-authenticator/wiki/Key-Uri-Format) or Google Authenticator [otpauth-migration](https://github.com/google/google-authenticator-android/issues/118) URL.
 
-CLOTP supports HOTP and TOTP  one-time passwords using SHA1, SHA256, and SHA512 hashes with number of code digits from 6 to 10. TOTP can have any time window defined.
+CLOTP supports HOTP and TOTP one-time passwords using SHA1, SHA256, and SHA512 hashes with number of code digits from 6 to 10. TOTP can have any time window defined.
 
 Following options are supported:
 
@@ -52,8 +47,12 @@ Where `name` is an OTP name.
 
 `code` will generate a new code from either otp id or otp name
 
-    clotp code --id <id>| <name>
+    clotp code [options] <name>
 
+Following options are supported:
+  
+  - `--counter` - set counter for HOTP code. The counter will be stored for future uses. This option is ignored if the name refers to Time-based OTP
+  - `--copy` - copies generated code to the clipboard
 
 #### Decode
 
@@ -68,5 +67,10 @@ For example,
     otpauth://totp/aaa:bbb?secret=YYYYY
     otpauth://hotp/aaa:ccc?secret=ZZZZZ&counter=1023
 
+#### Set-Counter
+
+`set-counter` can be used to set HTOP counter value
+
+    clotp set-counter <name> <counter-value>
 
 
