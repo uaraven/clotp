@@ -10,47 +10,6 @@ import (
 	"github.com/uaraven/gotp"
 )
 
-func Add(cmd *AddCmd, keys Keys) (string, error) {
-	id := uuid.New().String()
-	u, err := url.Parse(cmd.Uri)
-	if err != nil {
-		return "", err
-	}
-	if u.Scheme == migrationScheme {
-		return AddMigration(cmd.Uri, keys)
-	}
-	otp, err := gotp.OTPFromUri(cmd.Uri)
-	if err != nil {
-		return "", err
-	}
-
-	var name string
-
-	if cmd.Name != "" {
-		name = cmd.Name
-	} else {
-		name = otp.Label
-	}
-
-	return fmt.Sprintf("Added with id=%s", id), keys.AddKey(id, name, cmd.Uri)
-}
-
-func AddMigration(migrationUri string, keys Keys) (string, error) {
-	otps, err := otpFromMigrationUri(migrationUri)
-	if err != nil {
-		return "", err
-	}
-	var result strings.Builder
-	for _, otp := range otps {
-		id := uuid.New().String()
-		err = keys.AddKey(id, otp.Label, otp.OTP.ProvisioningUri(otp.Label, otp.Issuer))
-		if err != nil {
-			return "", err
-		}
-		result.WriteString(fmt.Sprintf("Added OTP %s with id %s\n", otp.Label, id))
-	}
-	return result.String(), nil
-}
 
 func parseOTP(otp OTPKey) (string, error) {
 	switch otpg := otp.OTP.(type) {
@@ -64,31 +23,6 @@ func parseOTP(otp OTPKey) (string, error) {
 			gotp.EncodeKey(otpg.Secret), hash, otpg.Digits, otpg.GetCounter()), nil
 	default:
 		return "", fmt.Errorf("unknown OTP type")
-	}
-}
-
-func List(cmd *ListCmd, keys Keys) (string, error) {
-	otps, err := keys.ListOTPs()
-	if err != nil {
-		return "", err
-	}
-	if len(otps) == 0 {
-		return "No stored OTPs", nil
-	} else {
-		var result strings.Builder
-		for _, otp := range otps {
-			var line string
-			if cmd.Parse {
-				line, err = parseOTP(otp)
-				if err != nil {
-					return "", err
-				}
-			} else {
-				line = fmt.Sprintf("[%s] %s - %s\n", otp.Id, otp.Label, otp.OTP.ProvisioningUri(otp.Label, otp.Issuer))
-			}
-			result.WriteString(line)
-		}
-		return result.String(), nil
 	}
 }
 

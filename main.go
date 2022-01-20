@@ -4,16 +4,9 @@ import (
 	"fmt"
 
 	"github.com/alexflint/go-arg"
+	"github.com/uaraven/clotp/cli"
+	"github.com/uaraven/clotp/keyrings"
 )
-
-type ListCmd struct {
-	Parse bool `arg:"-p,--parse" help:"Parse URIs and print each part separately"`
-}
-
-type AddCmd struct {
-	Uri  string `arg:"positional,required"`
-	Name string `arg:"--name" help:"Optional name of the code to refer to it later"`
-}
 
 type RemoveCmd struct {
 	Id   string `arg:"--id" help:"ID of the code to remove"`
@@ -40,7 +33,7 @@ type SetCounterCmd struct {
 
 var options struct {
 	List       *ListCmd       `arg:"subcommand:list" help:"List stored OTPs"`
-	Add        *AddCmd        `arg:"subcommand:add"`
+	Add        *cli.AddCmd    `arg:"subcommand:add"`
 	Remove     *RemoveCmd     `arg:"subcommand:remove"`
 	Code       *CodeCmd       `arg:"subcommand:code"`
 	Decode     *DecodeCmd     `arg:"subcommand:decode"`
@@ -53,7 +46,7 @@ var options struct {
 func main() {
 	arg.MustParse(&options)
 
-	keys, err := NewKeys()
+	keys, err := keyrings.NewKeys()
 	if err != nil {
 		fmt.Printf("Failed to create keyring, %v\n", err)
 		return
@@ -61,7 +54,7 @@ func main() {
 	var output string
 	err = nil
 	if options.Add != nil {
-		output, err = Add(options.Add, keys)
+		output, err = cli.Add(options.Add, keys)
 	} else if options.List != nil {
 		output, err = List(options.List, keys)
 	} else if options.Remove != nil {
