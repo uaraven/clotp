@@ -60,6 +60,14 @@ func (mk *mockKeys) UpdateKey(name string, data *keyrings.KeyringItem) error {
 	return nil
 }
 
+func (mk *mockKeys) GetKeyByName(name string) (*keyrings.KeyringKey, error) {
+	item, ok := mk.keys[name]
+	if !ok {
+		return nil, fmt.Errorf("OTP with name %s not found", name)
+	}
+	return item.Key, nil
+}
+
 func NewMockKeys() *mockKeys {
 	return &mockKeys{
 		keys: make(map[string]keyrings.KeyringItem),
