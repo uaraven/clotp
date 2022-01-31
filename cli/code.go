@@ -11,7 +11,7 @@ import (
 type CodeCmd struct {
 	Name    string `arg:"positional,required" help:"Name of the OTP code"`
 	Counter int64  `arg:"--counter" help:"Override counter for the HOTP code"`
-	Copy    bool   `arg:"--copy" help:"Copy generated code to clipboard"`
+	Copy    bool   `arg:"-c,--copy" help:"Copy generated code to clipboard"`
 }
 
 func Code(cmd *CodeCmd, keys keyrings.Keys) (string, error) {
