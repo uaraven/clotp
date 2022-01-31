@@ -10,17 +10,13 @@
 
 Commands:
  
-  - `list` - list all stored OTPs
   - `add` - add an OTP
   - `remove` - remove existing OTP
+  - `list` - list all stored OTPs
+  - `view` - view OTP code details
   - `code` - generate OTP code
   - `decode` - decode "otpauth-migration" URI
   - `set-counter` - set HOTP counter value
-  - `view` - view OTP code details
-
-#### List
-
-`list` command show all one-time passwords added previously with the `add` command.
 
 #### Add
 
@@ -44,6 +40,34 @@ Following options are supported:
 
 Where `name` is an OTP name.
 
+#### List
+
+`list` command show all one-time passwords added previously with the `add` command.
+
+#### View
+
+`view` command shows detailed information about a selected OTP code, including Hash algorithm, number of digits, time step, counter, and (**WARNING!!!**), secret key
+
+    clotp view <name>
+
+Example:
+
+```
+$ ./clotp view VPN
+
+        Name: VPN
+Account Name: uaraven
+      Issuer: SomeVPNProvider
+    OTP Type: TOTP
+   Hash Type: SHA1
+ Code Digits: 6
+ Time offset: 0
+   Time step: 30
+      Secret: XXXXXXX
+    Auth URI: otpauth://totp/uaraven@SomeVPNProvider?secret=XXXXXXX
+```
+
+
 #### Code
 
 `code` will generate a new code from either otp id or otp name
@@ -53,7 +77,7 @@ Where `name` is an OTP name.
 Following options are supported:
   
   - `--counter` - set counter for HOTP code. The counter will be stored for future uses. This option is ignored if the name refers to Time-based OTP
-  - `--copy` - copies generated code to the clipboard
+  - `-c` or `--copy` - copies generated code to the clipboard
 
 #### Decode
 
@@ -70,14 +94,8 @@ For example,
 
 #### Set-Counter
 
-`set-counter` can be used to set HTOP counter value
+`set-counter` allows to set the HTOP counter value
 
     clotp set-counter <name> <counter-value>
-
-#### View
-
-`view` command shows detailed information about a selected OTP code, including Hash algorithm, number of digits, time step, counter, and (**WARNING!!!**), secret key
-
-    clotp view <name>
 
 
