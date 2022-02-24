@@ -17,6 +17,7 @@ var options struct {
 	Decode     *cli.DecodeCmd     `arg:"subcommand:decode" help:"Decode Google Authenticator migration URI"`
 	SetCounter *cli.SetCounterCmd `arg:"subcommand:set-counter" help:"Set HOTP counter"`
 	View       *cli.ViewCmd       `arg:"subcommand:view" help:"View OTP code details"`
+	Scan       *cli.ScanCmd       `arg:"subcommand:scan" help:"Scan and decode QR code"`
 }
 
 // todo:
@@ -46,6 +47,8 @@ func main() {
 		output, err = cli.SetCounter(options.SetCounter, keys)
 	} else if options.View != nil {
 		output, err = cli.View(options.View, keys)
+	} else if options.Scan != nil {
+		output, err = cli.ScanQrCode(options.Scan.Image)
 	} else {
 		fmt.Println("Must provide a command. Run with --help to see command line options")
 		return
