@@ -48,7 +48,7 @@ func main() {
 	} else if options.View != nil {
 		output, err = cli.View(options.View, keys)
 	} else if options.Scan != nil {
-		output, err = cli.ScanQrCode(options.Scan.Image)
+		output, err = cli.ScanQrCode(options.Scan)
 	} else {
 		fmt.Println("Must provide a command. Run with --help to see command line options")
 		return
