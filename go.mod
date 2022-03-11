@@ -5,8 +5,10 @@ go 1.17
 require (
 	github.com/99designs/keyring v1.1.6
 	github.com/alexflint/go-arg v1.4.2
+	github.com/makiuchi-d/gozxing v0.1.1
 	github.com/uaraven/gotp v0.1.0
 	golang.design/x/clipboard v0.5.3
+	golang.org/x/image v0.0.0-20210628002857-a66eb6448b8d
 	google.golang.org/protobuf v1.27.1
 )
 
@@ -22,7 +24,8 @@ require (
 	github.com/stretchr/testify v1.5.1 // indirect
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550 // indirect
 	golang.org/x/exp v0.0.0-20190731235908-ec7cb31e5a56 // indirect
-	golang.org/x/image v0.0.0-20210628002857-a66eb6448b8d // indirect
 	golang.org/x/mobile v0.0.0-20210716004757-34ab1303b554 // indirect
 	golang.org/x/sys v0.0.0-20210510120138-977fb7262007 // indirect
+	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 )

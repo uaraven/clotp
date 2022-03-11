@@ -17,6 +17,7 @@ Commands:
   - `code` - generate OTP code
   - `decode` - decode "otpauth-migration" URI
   - `set-counter` - set HOTP counter value
+  - `scan` - decode QR code from the image
 
 #### Add
 
@@ -99,3 +100,10 @@ For example,
     clotp set-counter <name> <counter-value>
 
 
+#### Scan
+
+`scan` command can be used to decode QR code from the image. It supports `otpauth` and `otpauth-migration` URIs.
+
+    clotp scan [--decode [--parse]] <image>
+
+`<image>` is a path to a PNG or JPG image file.
