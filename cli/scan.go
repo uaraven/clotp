@@ -17,7 +17,7 @@ import (
 type ScanCmd struct {
 	Image  string `arg:"positional,required" help:"Image with the QR Code"`
 	Decode bool   `arg:"-d,--decode" help:"Decode otpauth-migration URI retrieved from the QR code"`
-	Parse  bool   `arg:"-p,--parse" help:"Fr decoded migration URIs, parse them and print each part separately"`
+	Parse  bool   `arg:"-p,--parse" help:"For decoded migration URIs, parse them and print each part separately"`
 }
 
 func ScanQrCode(cmd *ScanCmd) (string, error) {
