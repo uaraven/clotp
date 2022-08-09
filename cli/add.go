@@ -10,19 +10,45 @@ import (
 )
 
 type AddCmd struct {
-	Uri  string `arg:"positional,required"`
-	Name string `arg:"--name" help:"Optional name of the code to refer to it later"`
+	Uri    string `arg:"positional,required"`
+	Name   string `arg:"--name" help:"Optional name of the code to refer to it later"`
+	IsCode bool   `arg:"--code" help:"Pass just secret code instead of full URI"`
+}
+
+func parseURI(uri string) (*gotp.OTPKeyData, error) {
+	_, err := url.Parse(uri)
+	if err != nil {
+		return nil, err
+	}
+	otp, err := gotp.OTPFromUri(uri)
+	if err != nil {
+		return nil, err
+	}
+	return otp, nil
 }
 
 func Add(cmd *AddCmd, keys keyrings.Keys) (string, error) {
-	u, err := url.Parse(cmd.Uri)
-	if err != nil {
-		return "", err
+	var otp *gotp.OTPKeyData
+	var err error
+	var uri string
+	if cmd.IsCode {
+		if cmd.Name == "" {
+			return "", fmt.Errorf("name must be specified when create the key from the code")
+		}
+		key, err := gotp.DecodeKey(cmd.Uri)
+		if err == nil {
+			totp := gotp.NewDefaultTOTP(key)
+			otp = &gotp.OTPKeyData{
+				OTP:     totp,
+				Account: cmd.Name,
+				Issuer:  cmd.Name,
+			}
+			uri = totp.ProvisioningUri(cmd.Name, cmd.Name)
+		}
+	} else {
+		otp, err = parseURI(cmd.Uri)
+		uri = cmd.Uri
 	}
-	if u.Scheme == migrationScheme {
-		return AddMigration(cmd.Uri, keys)
-	}
-	otp, err := gotp.OTPFromUri(cmd.Uri)
 	if err != nil {
 		return "", err
 	}
@@ -41,7 +67,7 @@ func Add(cmd *AddCmd, keys keyrings.Keys) (string, error) {
 		output = fmt.Sprintf("Added %s(%s) with name %s", otp.Account, otp.Issuer, name)
 	}
 
-	return output, keys.AddKey(name, cmd.Uri)
+	return output, keys.AddKey(name, uri)
 }
 
 func AddMigration(migrationUri string, keys keyrings.Keys) (string, error) {
