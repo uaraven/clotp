@@ -45,6 +45,8 @@ func Add(cmd *AddCmd, keys keyrings.Keys) (string, error) {
 			}
 			uri = totp.ProvisioningUri(cmd.Name, cmd.Name)
 		}
+	} else if IsMigrationUri(cmd.Uri) {
+		return AddMigration(cmd.Uri, keys)
 	} else {
 		otp, err = parseURI(cmd.Uri)
 		uri = cmd.Uri
@@ -68,6 +70,10 @@ func Add(cmd *AddCmd, keys keyrings.Keys) (string, error) {
 	}
 
 	return output, keys.AddKey(name, uri)
+}
+
+func IsMigrationUri(uri string) bool {
+	return strings.HasPrefix(uri, migrationScheme+":")
 }
 
 func AddMigration(migrationUri string, keys keyrings.Keys) (string, error) {

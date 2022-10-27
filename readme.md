@@ -15,6 +15,7 @@ Commands:
   - `list` - list all stored OTPs
   - `view` - view OTP code details
   - `code` - generate OTP code
+  - `copy` - copy OTP code to the clipboard
   - `decode` - decode "otpauth-migration" URI
   - `set-counter` - set HOTP counter value
   - `scan` - decode QR code from the image
@@ -79,6 +80,16 @@ Following options are supported:
   
   - `--counter` - set counter for HOTP code. The counter will be stored for future uses. This option is ignored if the name refers to Time-based OTP
   - `-c` or `--copy` - copies generated code to the clipboard
+
+#### Copy
+
+`copy` will generate a new code from either otp id or otp name and copy it to clipboard. This is a shortcut to `clotp code -c`
+
+    clotp copy [options] <name>
+
+Following options are supported:
+
+- `--counter` - set counter for HOTP code. The counter will be stored for future uses. This option is ignored if the name refers to Time-based OTP
 
 #### Decode
 

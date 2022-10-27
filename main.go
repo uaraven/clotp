@@ -9,16 +9,23 @@ import (
 	"github.com/uaraven/clotp/keyrings"
 )
 
-var options struct {
+type Options struct {
 	List       *cli.ListCmd       `arg:"subcommand:list" help:"List stored OTPs"`
 	Add        *cli.AddCmd        `arg:"subcommand:add" help:"Add new OTP code"`
 	Remove     *cli.RemoveCmd     `arg:"subcommand:remove" help:"Remove existing OTP code"`
 	Code       *cli.CodeCmd       `arg:"subcommand:code" help:"Generate OTP code"`
+	Copy       *cli.CopyCmd       `arg:"subcommand:copy" help:"Copy OTP code to the clipboard"`
 	Decode     *cli.DecodeCmd     `arg:"subcommand:decode" help:"Decode Google Authenticator migration URI"`
 	SetCounter *cli.SetCounterCmd `arg:"subcommand:set-counter" help:"Set HOTP counter"`
 	View       *cli.ViewCmd       `arg:"subcommand:view" help:"View OTP code details"`
 	Scan       *cli.ScanCmd       `arg:"subcommand:scan" help:"Scan and decode QR code"`
 }
+
+func (Options) Version() string {
+	return "CLotp 0.1.0"
+}
+
+var options Options
 
 // todo:
 // - add parameter to generate TOTP for a given timestamp
@@ -41,6 +48,8 @@ func main() {
 		output, err = cli.Remove(options.Remove, keys)
 	} else if options.Code != nil {
 		output, err = cli.Code(options.Code, keys)
+	} else if options.Copy != nil {
+		output, err = cli.Copy(options.Copy, keys)
 	} else if options.Decode != nil {
 		output, err = cli.Decode(options.Decode)
 	} else if options.SetCounter != nil {
