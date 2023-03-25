@@ -19,6 +19,7 @@ Commands:
   - `decode` - decode "otpauth-migration" URI
   - `set-counter` - set HOTP counter value
   - `scan` - decode QR code from the image
+  - `gen` - generate an TOTP code on the fly, without saving the parameters
 
 #### Add
 
@@ -33,6 +34,8 @@ CLOTP supports HOTP and TOTP one-time passwords using SHA1, SHA256, and SHA512 h
 Following options are supported:
 
   - `--name` - custom name that will override account label from the `otpauth` URL. `--name` option is ignored when used with `otpauth-migration` URIs
+  - `--code` - pass base32-encoded secret code instead of URL,`--name` option is required when `--code` is used
+  - `--hash` - use specified hash algorithm. Supported hashes are `SHA-1`, `SHA-256` or `SHA-512`. `--hash` option is ignore when not used with `--code` option.
 
 #### Remove
 
@@ -118,3 +121,14 @@ For example,
     clotp scan [--decode [--parse]] <image>
 
 `<image>` is a path to a PNG or JPG image file.
+
+#### Gen
+
+`gen` command allows to generate TOTP code without saving the generator parameters to the keyring
+
+    clotp gen --key secret [--hash SHA-1|SHA-256|SHA-512] [--digits X] [--period xx]
+
+`secret` is a base32-encoded secret key
+`hash` allows to chose from one of the hash algorithms
+`digits` is a number of digits in the resulting code, default is 6
+`period` is a number of seconds before the TOTP code change, default is 30

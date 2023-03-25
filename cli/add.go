@@ -13,6 +13,7 @@ type AddCmd struct {
 	Uri    string `arg:"positional,required"`
 	Name   string `arg:"--name" help:"Optional name of the code to refer to it later"`
 	IsCode bool   `arg:"--code" help:"Pass just secret code instead of full URI"`
+	Hash   string `arg:"--hash" help:"Hash algorithm SHA-1, SHA-256 or SHA-512" choice:"SHA-1" choice:"SHA-256" choice:"SHA-512"`
 }
 
 func parseURI(uri string) (*gotp.OTPKeyData, error) {
@@ -37,7 +38,11 @@ func Add(cmd *AddCmd, keys keyrings.Keys) (string, error) {
 		}
 		key, err := gotp.DecodeKey(cmd.Uri)
 		if err == nil {
-			totp := gotp.NewDefaultTOTP(key)
+			hash, err := nameToHash(cmd.Hash)
+			if err != nil {
+				return "", fmt.Errorf("invalid hash name: %s", cmd.Hash)
+			}
+			totp := gotp.NewTOTPHash(key, 6, 30, 0, hash)
 			otp = &gotp.OTPKeyData{
 				OTP:     totp,
 				Account: cmd.Name,

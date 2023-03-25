@@ -19,10 +19,11 @@ type Options struct {
 	SetCounter *cli.SetCounterCmd `arg:"subcommand:set-counter" help:"Set HOTP counter"`
 	View       *cli.ViewCmd       `arg:"subcommand:view" help:"View OTP code details"`
 	Scan       *cli.ScanCmd       `arg:"subcommand:scan" help:"Scan and decode QR code"`
+	Gen        *cli.GenCmd        `arg:"subcommand:gen" help:"Genereate TOTP code on the fly"`
 }
 
 func (Options) Version() string {
-	return "CLotp 0.1.0"
+	return "CLotp 0.1.1"
 }
 
 var options Options
@@ -58,6 +59,8 @@ func main() {
 		output, err = cli.View(options.View, keys)
 	} else if options.Scan != nil {
 		output, err = cli.ScanQrCode(options.Scan)
+	} else if options.Gen != nil {
+		output, err = cli.Gen(options.Gen)
 	} else {
 		fmt.Println("Must provide a command. Run with --help to see command line options")
 		return
