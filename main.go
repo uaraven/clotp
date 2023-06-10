@@ -23,7 +23,7 @@ type Options struct {
 }
 
 func (Options) Version() string {
-	return "CLotp 0.1.1"
+	return "CLotp 0.1.2"
 }
 
 var options Options
