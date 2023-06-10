@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"image"
 	"os"
 	"strings"
@@ -23,30 +24,30 @@ type ScanCmd struct {
 func ScanQrCode(cmd *ScanCmd) (string, error) {
 	file, err := os.Open(cmd.Image)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to read image file %v", err)
 	}
 	img, _, err := image.Decode(file)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to read image %v", err)
 	}
 
 	// prepare BinaryBitmap
 	bmp, err := gozxing.NewBinaryBitmapFromImage(img)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to read image %v", err)
 	}
 
 	// decode image
 	qrReader := qrcode.NewQRCodeReader()
 	result, err := qrReader.Decode(bmp, nil)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("QR scanner failed with error %v", err)
 	}
 	qrUri := result.GetText()
 	if cmd.Decode {
 		uris, err := decodeMigrationUri(qrUri, cmd.Parse)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("failed to decode migration URI %v", err)
 		}
 		var sb strings.Builder
 		for _, uri := range uris {
